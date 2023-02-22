@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -21,19 +20,38 @@ class _PhotosScreenState extends State<PhotosScreen> {
        return compute(parsePhotos, response.body) as List<Photo>;
 
      }
-
+   @override
+   void initState() {
+     super.initState();
+     fetchPhotos(http.Client());
+   }
    late List<Photo> photos = fetchPhotos(http.Client()) as List<Photo>;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: GridView.builder(
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-          ),
-          itemCount: photos.length,
-          itemBuilder: (context, index) {
-            return Image.network(photos[index].thumbnailUrl);
-          },
+        body: FutureBuilder<List<Photo>>(
+          future: fetchPhotos(http.Client()),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return const Center(
+                child: Text('An error has occurred!'),
+              );
+            } else if (snapshot.hasData) {
+              return GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                ),
+                itemCount: photos.length,
+                itemBuilder: (context, index) {
+                  return Image.network(photos[index].thumbnailUrl);
+                },
+              );
+            } else {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          }
         ));
   }
 }
